@@ -179,3 +179,10 @@ button:hover {
 		width: 49%;
 	}
 }
+
+/* Error Message */
+.activities .error {
+	margin-top: -10px;
+	display: block;
+	margin-bottom: 16px;
+}

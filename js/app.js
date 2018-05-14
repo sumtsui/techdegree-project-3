@@ -1,12 +1,13 @@
 const form = document.querySelector('form');
 const name = document.querySelector('#name');
+const mail = document.querySelector('#mail');
 const title = document.querySelector('#title');
 const otherRole = document.querySelector('#other-title');
 const design = document.querySelector('#design');
-const colorSelect = document.querySelector('#color');
-const colorOptions = document.querySelectorAll('#color option');
+const color = document.querySelector('#color');
+const colorOptions = color.querySelectorAll('option');
 const activityField = document.querySelector('.activities');
-const activityLabels = document.querySelectorAll('.activities label');
+const activityLabels = activityField.querySelectorAll('label');
 let cost = 0;
 const payment = document.querySelector('#payment');
 const paymentOptions = payment.querySelectorAll('option');
@@ -15,7 +16,10 @@ const paymentDetails = document.querySelectorAll('#payment ~ div');
 // when page load:
 // hide "Other Job Role"
 // hide all t-shirt colors
-// focus the name field
+// focus Name field
+// set Credit card payment to default
+// hide Paypal and Bitcoin payment
+// disable "Select Payment Method"
 window.addEventListener('load', () => {
 	hide(otherRole);
 	colorOptions.forEach(option => hide(option));
@@ -34,7 +38,7 @@ title.addEventListener('change', () => {
 // show colors based on t-shirt theme
 design.addEventListener('change', () => {
 	let theme;
-	// asign part of string exist in color to theme
+	// asign value that exist in color description to theme
 	if (design.value === 'js puns') theme = 'JS Puns';
 	if (design.value === 'heart js') theme = '♥ JS';
 	if (design.value === 'blank') theme = 'select';
@@ -42,7 +46,7 @@ design.addEventListener('change', () => {
 	colorOptions.forEach(option => option.style.display = 
 		(option.innerText.includes(theme)) ? 'block' : 'none');
 	// refresh default color option
-	colorSelect.value = document.querySelector('#color option[style="display: block;"]').value;
+	color.value = document.querySelector('#color option[style="display: block;"]').value;
 });
 
 // activity checkbox
@@ -68,27 +72,56 @@ activityField.addEventListener('change', (event) => {
 		});
 	}
 	// show cost on page
-	document.querySelector('#cost').innerText = '$' + cost;
+	document.querySelector('#cost').innerText = 'Total: $' + cost;
 });
 
 payment.addEventListener('change', () => {
-	let method = payment.value;
-	paymentDetails.forEach(detail => detail.style.display = 'none');
-	switch (method) {
-		case 'credit card': 
-			show(paymentDetails[0]);
-			break;
-		case 'paypal':
-			show(paymentDetails[1]);
-			break;
-		case 'bitcoin':
-			show(paymentDetails[2]);
-			break;
-		}
+	paymentDetails.forEach(detail => hide(detail));
+	if (payment.value === 'credit card') show(paymentDetails[0]);
+	if (payment.value === 'paypal') show(paymentDetails[1]);
+	if (payment.value === 'bitcoin') show(paymentDetails[2]);
 });
 
-form.addEventListener('submit', () => {
+form.addEventListener('submit', (event) => {
+	event.preventDefault();	// should be deleted when project done
 	
+	if (name.value === '') { 
+		let error = document.createElement('span');
+		error.className = 'error'; 
+		error.innerText = ' (please provide your name)';
+		if (name.previousElementSibling.children.length < 1) {
+			name.previousElementSibling.appendChild(error);
+		}
+		name.previousElementSibling.style.color = '#DC143C';
+	} else {
+		if (name.previousElementSibling.contains(document.querySelector('.error'))) {
+			name.previousElementSibling.removeChild(document.querySelector('.error'));
+			name.previousElementSibling.style.color = '#000';
+		}
+	}
+
+	if (!validEmail(mail.value)) {
+		let error = document.createElement('span');
+		error.className = 'error'; 
+		error.innerText = ' (please provide a valid email address)';
+		if (mail.previousElementSibling.children.length < 1) {
+			mail.previousElementSibling.appendChild(error);
+		}
+		mail.previousElementSibling.style.color = '#DC143C';
+	} else {
+		if (mail.previousElementSibling.contains(document.querySelector('.error'))) {
+			mail.previousElementSibling.removeChild(document.querySelector('.error'));
+			mail.previousElementSibling.style.color = '#000';
+		}
+	}
+
+	if (!noneSelected()) {
+		// let error = document.createElement('span');
+		// error.className = 'error'; 
+		// error.innerText = ' (please select at least one activity)';
+		// if (acti)
+	}
+
 });
 
 // take 2 activities, return whether they have conflicting time.
@@ -101,6 +134,55 @@ function isConflict(string1, string2) {
 // take activity, return its cost.
 function getCost(string) {
 	return parseInt(string.substr(string.indexOf('$') + 1));
+}
+
+function validEmail(string) {
+	let isValid = false;
+
+	// validate there is a '@' and it is not at the start or end position
+	if (string.indexOf('@') <= 0 || string.lastIndexOf('@') === string.length - 1)
+		return isValid; 
+	// validate there is a '.' and it is not at the start or end position
+	if (string.indexOf('.') <= 0 || string.lastIndexOf('.') === string.length - 1) 
+		return isValid;
+
+	// validate the part after the first "@" 
+	let substring = string.substr(string.indexOf('@') + 1);
+	console.log('after the @', substring);
+	for (let i = 0; i < substring.length; i++) {
+		console.log(substring[i], substring[i].charCodeAt());
+		// if there is any string's unicode value over 122:
+		if (substring[i].charCodeAt() > 122) return isValid;
+		// if there is any string's unicode value btw 57 and 97:
+		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57) return isValid;
+		// if there is any string's unicode value below 48 and not a ".":
+		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46) return isValid;
+		// if there is no ".":
+		else if (!substring.includes('.')) return isValid;
+	}
+
+	// validate the part before the first "@"
+	substring = string.substr(0, string.indexOf('@'));
+	console.log('before the @', substring);
+	for (let i = 0; i < substring.length; i++) {
+		console.log(substring[i], substring[i].charCodeAt());
+		// if there is any string's unicode value over 122:
+		if (substring[i].charCodeAt() > 122) return isValid;
+		// if there is any string's unicode value btw 57 and 97 and not a "_":
+		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57 && substring[i].charCodeAt() !== 95) return isValid;
+		// if there is any string's unicode value below 48 and not a "." or "-":
+		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46 && substring[i].charCodeAt() !== 45) return isValid;
+	}
+	return true;
+}
+
+function noneSelected () {
+	let selected = false;
+	let activityOptions = document.querySelectorAll('input');
+	activityOptions.forEach(option => {
+		if (option.checked) selected = true;
+	});
+	return selected;
 }
 
 function show(node) {

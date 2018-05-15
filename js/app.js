@@ -13,9 +13,7 @@ const payment = document.querySelector('#payment');
 const paymentOptions = payment.querySelectorAll('option');
 const paymentDetails = document.querySelectorAll('#payment ~ div');
 const errorColor = '#DC143C';
-const ccNum = document.querySelector('cc-num');
-const zip = document.querySelector('zip');
-const cvv = document.querySelector('cvv');
+// const creditCard = document.querySelector('#cc-num');
 
 // when page load:
 // hide "Other Job Role"
@@ -86,17 +84,28 @@ payment.addEventListener('change', () => {
 	if (payment.value === 'bitcoin') show(paymentDetails[2]);
 });
 
+name.addEventListener('blur', () => handleNameError());
+mail.addEventListener('blur', () => handleMailError());
+// creditCard.addEventListener('blur', () => handleCreditCardError());
+
 form.addEventListener('submit', (event) => {
-	if (!formValidate()) {
-		event.preventDefault();
-	}
+	if (!formValidate()) event.preventDefault();
 });
 
 function formValidate() {
-
 	let isValid = true;
+	if (!handleNameError()) isValid = false;
+	if (!handleMailError()) isValid = false;
+	if (!handleActivityError()) isValid = false;
+	if (!handleCreditCardError()) isValid = false;
+
+	return isValid;
+}
+
+function handleNameError() {
+	let result = true;
 	if (name.value === '') { 
-		isValid = false;
+		result = false;
 		let error = document.createElement('span');
 		error.className = 'error'; 
 		error.innerText = ' (please provide your name)';
@@ -110,9 +119,13 @@ function formValidate() {
 			name.previousElementSibling.style.color = '#000';
 		}
 	}
+	return result;
+}
 
+function handleMailError() {
+	let result = true;
 	if (!validEmail(mail.value)) {
-		isValid = false;
+		result = false;
 		let error = document.createElement('span');
 		error.className = 'mail error'; 
 		error.innerText = ' (please provide a valid email address)';
@@ -126,9 +139,13 @@ function formValidate() {
 			mail.previousElementSibling.style.color = '#000';
 		}
 	}
+	return result;
+}
 
+function handleActivityError() {
+	let result = true;
 	if (!noneSelected()) {
-		isValid = false;
+		result = false;
 		let error = document.createElement('span');
 		error.className = 'error';
 		error.style.color = errorColor;
@@ -141,30 +158,45 @@ function formValidate() {
 			activityField.removeChild(activityField.querySelector('.error'));
 		}
 	}
+	return result;
+}
 
+function handleCreditCardError() {
+	let result = true;
 	if (paymentOptions[1].selected) {
-		if (inValidCCInfo('cc-num') === 'cc-num') {
-			isValid = false;
+		if (inValidCreditCard('cc-num') === 'cc-num') {
+			result = false;
 			document.querySelector(`#cc-num`).previousElementSibling.style.color = errorColor;
 		} else {
 			document.querySelector(`#cc-num`).previousElementSibling.style.color = '#000';
 		}
 
-		if (inValidCCInfo('zip') === 'zip') {
-			isValid = false;
+		if (inValidCreditCard('zip') === 'zip') {
+			result = false;
 			document.querySelector(`#zip`).previousElementSibling.style.color = errorColor;
 		} else {
 			document.querySelector(`#zip`).previousElementSibling.style.color = '#000';
 		}
 
-		if (inValidCCInfo('cvv') === 'cvv') {
-			isValid = false;
+		if (inValidCreditCard('cvv') === 'cvv') {
+			result = false;
 			document.querySelector(`#cvv`).previousElementSibling.style.color = errorColor;
 		} else {
 			document.querySelector(`#cvv`).previousElementSibling.style.color = '#000';
 		}
 	}
-	return isValid;
+	return result;
+}
+
+function creditError(info) {
+	let result = true;
+	if (inValidCreditCard(info) === info) {
+		result = false;
+		document.querySelector(`#${info}`).previousElementSibling.style.color = errorColor;
+	} else {
+		document.querySelector(`#${info}`).previousElementSibling.style.color = '#000';
+	}
+	return result;
 }
 
 // take 2 activities, return whether they have conflicting time.
@@ -181,13 +213,13 @@ function getCost(string) {
 
 function validEmail(string) {
 	let isValid = false;
-	// validate there is a '@' and it is not at the start or end position
+	// check there is a '@' and it is not at the start or end
 	if (string.indexOf('@') <= 0 || string.lastIndexOf('@') === string.length - 1)
 		return isValid; 
-	// validate there is a '.' and it is not at the start or end position
+	// check there is a '.' and it is not at the start or end
 	if (string.indexOf('.') <= 0 || string.lastIndexOf('.') === string.length - 1) 
 		return isValid;
-	// validate the part after the first "@" 
+	// check the part after the first "@" 
 	let substring = string.substr(string.indexOf('@') + 1);
 	console.log('after the @', substring);
 	for (let i = 0; i < substring.length; i++) {
@@ -216,7 +248,7 @@ function validEmail(string) {
 	return true;
 }
 
-function noneSelected () {
+function noneSelected() {
 	let selected = false;
 	let activityOptions = document.querySelectorAll('input');
 	activityOptions.forEach(option => {
@@ -225,7 +257,7 @@ function noneSelected () {
 	return selected;
 }
 
-function inValidCCInfo(info) {
+function inValidCreditCard(info) {
 	let num = document.querySelector(`#${info}`).value;
 	if (num === '') return info;
 	for (let i = 0; i < num.length; i++) {

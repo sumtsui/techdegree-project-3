@@ -8,14 +8,14 @@ const color = document.querySelector('#color');
 const colorOptions = color.querySelectorAll('option');
 const activityField = document.querySelector('.activities');
 const activityLabels = activityField.querySelectorAll('label');
-let cost = 0;	// total activity cost
 const payment = document.querySelector('#payment');
 const paymentOptions = payment.querySelectorAll('option');
 const paymentDetails = document.querySelectorAll('#payment ~ div');
-const errorColor = '#DC143C';
+const errorColor = '#DC143C'; // error message color
 const ccNum = document.querySelector('#cc-num');
 const zipCode = document.querySelector('#zip');
 const cvv = document.querySelector('#cvv');
+let cost = 0;	// total activity cost
 
 // when page load:
 // hide "Other Job Role".
@@ -104,81 +104,74 @@ function getCost(string) {
 // ~~~~~~~~~~~~~~ Validation ~~~~~~~~~~~~~~~
 
 // check error when user finish typing and move on.
-name.addEventListener('blur', () => hasNameError());
-mail.addEventListener('blur', () => hasMailError());
-activityField.addEventListener('change', () => hasActivityError());
-ccNum.addEventListener('blur', (event) => hasCreditCardError(event.target.id));
-zipCode.addEventListener('blur', (event) => hasCreditCardError(event.target.id));
-cvv.addEventListener('blur', (event) => hasCreditCardError(event.target.id));
+name.addEventListener('blur', () => handleInputError(validName(), name, 'please provide your name'));
+mail.addEventListener('blur', () => handleInputError(validMail(), mail, 'please provide a valid email address'));
+ccNum.addEventListener('blur', () => handleInputError(validCCNum(), ccNum));
+zipCode.addEventListener('blur', () => handleInputError(validZipCode(), zipCode));
+cvv.addEventListener('blur', () => handleInputError(validCVV(), cvv));
+activityField.addEventListener('change', () => handleActivityError());
 
 // check error when form submit
 form.addEventListener('submit', (event) => {
-	if (!formValidate()) event.preventDefault();
+	if (!validateForm()) event.preventDefault();
 });
 
-function formValidate(event) {
+// call all the errorhandlers
+// return true (no error), false (has error)
+function validateForm(event) {
 	let valid = true;
-	if (hasNameError()) valid = false;
-	if (hasMailError()) valid = false;
-	if (hasActivityError()) valid = false;
+	if (handleInputError(validName(), name, 'please provide your name')) 
+		valid = false;
+	if (handleInputError(validMail(), mail, 'please provide a valid email address')) 
+		valid = false;
 	if (paymentOptions[1].selected) {
-		if (hasCreditCardError('cc-num')) valid = false;
-		if (hasCreditCardError('zip')) valid = false;
-		if (hasCreditCardError('cvv')) valid = false;
+		if (handleInputError(validCCNum(), ccNum)) valid = false;
+		if (handleInputError(validZipCode(), zipCode)) valid = false;
+		if (handleInputError(validCVV(), cvv)) valid = false;
 	}
+	if (handleActivityError()) valid = false;
 	return valid;
 }
 
-// check and handle Name error, return true (has error) or false (no error)
-function hasNameError() {
-	let label = name.previousElementSibling;
-	if (name.value === '') { 
-		let error = document.createElement('span');
-		error.className = 'error'; 
-		error.innerText = ' (please provide your name)';
-		if (label.children.length < 1) {
-			label.appendChild(error);
+// take a Validation condition, a DOM element, an optional Error message
+// check and handle input error
+// return true (has error) or false (no error)
+function handleInputError(condition, node, message = null) {
+	let label = node.previousElementSibling;
+	if (!condition) {
+		if (message !== null) {
+			let error = document.createElement('span');
+			error.className = 'error'; 
+			error.innerText = ` (${message})`;
+			if (label.children.length < 1) {
+				label.appendChild(error);
+			}
 		}
 		label.style.color = errorColor;
 		return true;
 	} else {
-		if (label.contains(document.querySelector('.error'))) {
-			label.removeChild(document.querySelector('.error'));
-			label.style.color = '#000';
+		if (label.contains(label.querySelector('.error'))) {
+			label.removeChild(label.querySelector('.error'));
 		}
+		label.style.color = '#000';
 		return false;
 	}
 }
 
-// check and handle Email error, return true (has error) or false (no error)
-function hasMailError() {
-	let label = mail.previousElementSibling;
-	if (!validMail()) {
-		let error = document.createElement('span');
-		error.className = 'mail error'; 
-		error.innerText = ' (please provide a valid email address)';
-		if (label.children.length < 1) {
-			label.appendChild(error);
-		}
-		label.style.color = errorColor;
-		return true;
-	} else {
-		if (label.contains(document.querySelector('.mail.error'))) {
-			label.removeChild(document.querySelector('.mail.error'));
-			label.style.color = '#000';
-		}
-		return false;
-	}
+function validName() {
+	return (name.value === '') ? false : true;
 }
 
 // validate email string, return true (valid) or false (invalid)
+// 1. allow only one '@', can't be the first or last character. 
+// 2. must have one '.', can't be the first or last character. 
+// 3. email name allow only 0-9, a-z, '-', '_', '.'
+// 4. email domin allow only 0-9, a-z, '.'
 function validMail() {
-	let string = mail.value;
+	let string = mail.value.toLowerCase();
 	let result = false;
-	// check there is a '@' and it is not at the start or end
 	if (string.indexOf('@') <= 0 || string.lastIndexOf('@') === string.length - 1)
 		return result; 
-	// check there is a '.' and it is not at the start or end
 	if (string.indexOf('.') <= 0 || string.lastIndexOf('.') === string.length - 1) 
 		return result;
 	// check the part after the first "@" 
@@ -186,13 +179,9 @@ function validMail() {
 	console.log('after the @', substring);
 	for (let i = 0; i < substring.length; i++) {
 		console.log(substring[i], substring[i].charCodeAt());
-		// if there is any string's unicode value over 122:
 		if (substring[i].charCodeAt() > 122) return result;
-		// if there is any string's unicode value btw 57 and 97:
 		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57) return result;
-		// if there is any string's unicode value below 48 and not a ".":
 		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46) return result;
-		// if there is no ".":
 		else if (!substring.includes('.')) return result;
 	}
 	// validate the part before the first "@"
@@ -200,18 +189,15 @@ function validMail() {
 	console.log('before the @', substring);
 	for (let i = 0; i < substring.length; i++) {
 		console.log(substring[i], substring[i].charCodeAt());
-		// if there is any string's unicode value over 122:
 		if (substring[i].charCodeAt() > 122) return result;
-		// if there is any string's unicode value btw 57 and 97 and not a "_":
 		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57 && substring[i].charCodeAt() !== 95) return result;
-		// if there is any string's unicode value below 48 and not a "." or "-":
 		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46 && substring[i].charCodeAt() !== 45) return result;
 	}
 	return true;
 }
 
 // check and handle Activity error, return true (has error) or false (no error)
-function hasActivityError() {
+function handleActivityError() {
 	if (!itemSelected()) {
 		let error = document.createElement('span');
 		error.className = 'error';
@@ -239,36 +225,34 @@ function itemSelected() {
 	return result;
 }
 
-// check and handle Credit Card error, return true (has error) or false (no error)
-function hasCreditCardError(info) {
-	if (validCreditCard(info) !== true) {
-		document.querySelector(`#${info}`).previousElementSibling.style.color = errorColor;
-		return true;
-	} else {
-		document.querySelector(`#${info}`).previousElementSibling.style.color = '#000';
-		return false;
-	}
+function validCCNum() {
+	let result = true;
+	let num = ccNum.value;
+	if (num === '') result = false;
+	for (let i = 0; i < num.length; i++) {
+		if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48 || num.length > 16 || num.length < 13) result = false;
+	}	
+	return result;
 }
 
-// validate Credit Card info, return true (valid) or the invalid field's id.
-function validCreditCard(info) {
-	let num = document.querySelector(`#${info}`).value;
-	if (num === '') return info;
+function validZipCode() {
+	let result = true;
+	let num = zipCode.value;
+	if (num === '') result = false;
 	for (let i = 0; i < num.length; i++) {
-		if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48) return info;
-		switch (info) {
-			case 'cc-num':
-				if (num.length > 16 || num.length < 13) return info;
-				break;
-			case 'zip':
-				if (num.length !== 5) return info;
-				break;
-			case 'cvv':
-				if (num.length !== 3) return info;
-				break;
-		}
-	}
-	return true;
+		if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48 || num.length !== 5) result = false;
+	}	
+	return result;
+}
+
+function validCVV() {
+	let result = true;
+	let num = cvv.value;
+	if (num === '') result = false;
+	for (let i = 0; i < num.length; i++) {
+		if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48 || num.length !== 3) result = false;
+	}	
+	return result;
 }
 
 function show(node) {

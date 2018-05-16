@@ -25,6 +25,7 @@ let cost = 0;	// total activity cost
 // set Credit card payment to default.
 // hide Paypal and Bitcoin payment.
 // disable option "Select Payment Method".
+// hide Color Selection
 window.addEventListener('load', () => {
 	hide(otherRole);
 	colorOptions.forEach(option => hide(option));
@@ -72,7 +73,6 @@ activityField.addEventListener('change', (event) => {
 		cost += getCost(text);	// add cost
 		activityLabels.forEach(label => {
 			if (isConflict(label.innerText, text)) {
-				// set conflicting activity
 				label.firstChild.disabled = true;
 				label.style.color = 'gray';
 			}
@@ -81,13 +81,11 @@ activityField.addEventListener('change', (event) => {
 			cost -= getCost(text);	// deduct cost
 			activityLabels.forEach(label => {
 			if (isConflict(label.innerText, text)) {
-				// release conflicting activity
 				label.firstChild.disabled = false;
 				label.style.color = '#000';
 			}
 		});
 	}
-	// show cost on page
 	document.querySelector('#cost').innerText = 'Total: $' + cost;
 });
 
@@ -113,12 +111,13 @@ function getCost(string) {
 
 // ================== Validation =====================
 
-// check error when user finish typing and move on.
+// check error when input field is blur.
 name.addEventListener('blur', () => handleInputError(validName(), name, 'Please provide your name'));
 mail.addEventListener('blur', () => handleInputError(validMail(), mail, 'Please provide a valid email address'));
 ccNum.addEventListener('blur', () => handleInputError(validCCNum()[0], ccNum, validCCNum()[1]));
 zipCode.addEventListener('blur', () => handleInputError(validZipCode(), zipCode));
 cvv.addEventListener('blur', () => handleInputError(validCVV(), cvv));
+
 activityField.addEventListener('change', () => handleActivityError());
 
 // check error when form submit
@@ -147,20 +146,18 @@ function validateForm(event) {
 // check and handle input error
 // return true (has error) or false (no error)
 function handleInputError(condition, node, message = null) {
-	let parent = node.parentElement;
-	if (node.previousElementSibling === parent.querySelector('.error')) {
-		parent.removeChild(parent.querySelector('.error'));
+	if (node.previousElementSibling.className.includes('error')) {
+		node.previousElementSibling.remove();
 	}
 	if (!condition) {
-		let label = node.previousElementSibling;
 		if (message !== null) {
 			let error = document.createElement('span');
 			error.className = 'error'; 
 			error.innerText = `${message}:`;
-			parent.insertBefore(error, node);
+			node.parentElement.insertBefore(error, node);
 			hide(error.previousElementSibling);
 		}
-		label.style.color = errorColor;
+		node.previousElementSibling.style.color = errorColor;
 		return true;
 	} else {
 		show(node.previousElementSibling);
@@ -169,9 +166,7 @@ function handleInputError(condition, node, message = null) {
 	}
 }
 
-function validName() {
-	return (name.value === '') ? false : true;
-}
+function validName() { return (name.value === '') ? false : true; }
 
 // validate email string, return true (valid) or false (invalid)
 // 1. allow only one '@', can't be the first or last character. 
@@ -214,14 +209,12 @@ function handleActivityError() {
 		error.className = 'error';
 		error.style.color = errorColor;
 		error.innerText = '(Please select at least one Activity)';
-		if (!activityField.contains(activityField.querySelector('.error'))) {
+		if (!activityField.querySelector('.error'))
 			activityField.insertBefore(error, activityLabels[0]);
-		} 
 		return true;
 	} else {
-		if (activityField.querySelector('.error')) {
-			activityField.removeChild(activityField.querySelector('.error'));
-		}
+		if (activityField.querySelector('.error'))
+			activityField.querySelector('.error').remove();
 		return false;
 	}
 }
@@ -236,6 +229,9 @@ function itemSelected() {
 	return result;
 }
 
+// return value is an array of Boolean and String.
+// return true (vaild) or false (invalid)
+// return error message 
 function validCCNum() {
 	let result = [];
 	let valid = true;
@@ -249,7 +245,6 @@ function validCCNum() {
 			if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48) {
 				errorMessage = 'Please enter number only';
 				valid = false;
-				break;
 			} else if (num.length > 16 || num.length < 13) {
 				errorMessage = 'Please enter a 13-16 digit long number';
 				valid = false;
@@ -259,6 +254,7 @@ function validCCNum() {
 	return [valid, errorMessage];
 }
 
+// return true (vaild) or false (invalid)
 function validZipCode() {
 	let result = true;
 	let num = zipCode.value;
@@ -269,6 +265,7 @@ function validZipCode() {
 	return result;
 }
 
+// return true (vaild) or false (invalid)
 function validCVV() {
 	let result = true;
 	let num = cvv.value;

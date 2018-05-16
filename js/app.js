@@ -6,6 +6,7 @@ const otherRole = document.querySelector('#other-title');
 const design = document.querySelector('#design');
 const color = document.querySelector('#color');
 const colorOptions = color.querySelectorAll('option');
+const colorSelect = document.querySelector('#colors-js-puns');
 const activityField = document.querySelector('.activities');
 const activityLabels = activityField.querySelectorAll('label');
 const payment = document.querySelector('#payment');
@@ -32,9 +33,10 @@ window.addEventListener('load', () => {
 	hide(paymentDetails[1]);
 	hide(paymentDetails[2]);
 	paymentOptions[0].disabled = true;
+	hide(colorSelect);
 });
 
-// ~~~~~~~~~~~~~~ Interaction ~~~~~~~~~~~~~~~
+// ============== Interaction =================
 
 // show "Other Job Role" if "Other" is selected
 title.addEventListener('change', () => {
@@ -44,14 +46,22 @@ title.addEventListener('change', () => {
 // show colors based on t-shirt theme
 design.addEventListener('change', () => {
 	let theme;
-	// asign value that match the color descriptions to theme
-	if (design.value === 'js puns') theme = 'JS Puns';
-	if (design.value === 'heart js') theme = '♥ JS';
-	if (design.value === 'blank') theme = 'select';
-	// check and show the colors belong to the theme
+
+	if (design.value === 'js puns') {
+		theme = 'JS Puns';
+		show(colorSelect);
+	}
+	if (design.value === 'heart js') {
+		theme = '♥ JS';
+		show(colorSelect);
+	}
+	if (design.value === 'blank') {
+		theme = 'select';
+		hide(colorSelect);
+	}
 	colorOptions.forEach(option => option.style.display = 
 		(option.innerText.includes(theme)) ? 'block' : 'none');
-	// refresh default color option
+	// refresh default color option 
 	color.value = document.querySelector('#color option[style="display: block;"]').value;
 });
 
@@ -101,12 +111,12 @@ function getCost(string) {
 	return parseInt(string.substr(string.indexOf('$') + 1));
 }
 
-// ~~~~~~~~~~~~~~ Validation ~~~~~~~~~~~~~~~
+// ================== Validation =====================
 
 // check error when user finish typing and move on.
-name.addEventListener('blur', () => handleInputError(validName(), name, 'please provide your name'));
-mail.addEventListener('blur', () => handleInputError(validMail(), mail, 'please provide a valid email address'));
-ccNum.addEventListener('blur', () => handleInputError(validCCNum(), ccNum));
+name.addEventListener('blur', () => handleInputError(validName(), name, 'Please provide your name'));
+mail.addEventListener('blur', () => handleInputError(validMail(), mail, 'Please provide a valid email address'));
+ccNum.addEventListener('blur', () => handleInputError(validCCNum()[0], ccNum, validCCNum()[1]));
 zipCode.addEventListener('blur', () => handleInputError(validZipCode(), zipCode));
 cvv.addEventListener('blur', () => handleInputError(validCVV(), cvv));
 activityField.addEventListener('change', () => handleActivityError());
@@ -120,9 +130,9 @@ form.addEventListener('submit', (event) => {
 // return true (no error), false (has error)
 function validateForm(event) {
 	let valid = true;
-	if (handleInputError(validName(), name, 'please provide your name')) 
+	if (handleInputError(validName(), name, 'Please provide your name')) 
 		valid = false;
-	if (handleInputError(validMail(), mail, 'please provide a valid email address')) 
+	if (handleInputError(validMail(), mail, 'Please provide a valid email address')) 
 		valid = false;
 	if (paymentOptions[1].selected) {
 		if (handleInputError(validCCNum(), ccNum)) valid = false;
@@ -137,23 +147,24 @@ function validateForm(event) {
 // check and handle input error
 // return true (has error) or false (no error)
 function handleInputError(condition, node, message = null) {
-	let label = node.previousElementSibling;
+	let parent = node.parentElement;
+	if (node.previousElementSibling === parent.querySelector('.error')) {
+		parent.removeChild(parent.querySelector('.error'));
+	}
 	if (!condition) {
+		let label = node.previousElementSibling;
 		if (message !== null) {
 			let error = document.createElement('span');
 			error.className = 'error'; 
-			error.innerText = ` (${message})`;
-			if (label.children.length < 1) {
-				label.appendChild(error);
-			}
+			error.innerText = `${message}:`;
+			parent.insertBefore(error, node);
+			hide(error.previousElementSibling);
 		}
 		label.style.color = errorColor;
 		return true;
 	} else {
-		if (label.contains(label.querySelector('.error'))) {
-			label.removeChild(label.querySelector('.error'));
-		}
-		label.style.color = '#000';
+		show(node.previousElementSibling);
+		node.previousElementSibling.style.color = '#000';
 		return false;
 	}
 }
@@ -226,13 +237,26 @@ function itemSelected() {
 }
 
 function validCCNum() {
-	let result = true;
+	let result = [];
+	let valid = true;
+	let errorMessage;
 	let num = ccNum.value;
-	if (num === '') result = false;
-	for (let i = 0; i < num.length; i++) {
-		if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48 || num.length > 16 || num.length < 13) result = false;
-	}	
-	return result;
+	if (num === '') {
+		errorMessage = 'Please enter credit card number';
+		valid = false;
+	} else {
+		for (let i = 0; i < num.length; i++) {
+			if (num[i].charCodeAt() > 57 || num[i].charCodeAt() < 48) {
+				errorMessage = 'Please enter number only';
+				valid = false;
+				break;
+			} else if (num.length > 16 || num.length < 13) {
+				errorMessage = 'Please enter a 13-16 digit long number';
+				valid = false;
+			}
+		}	
+	}
+	return [valid, errorMessage];
 }
 
 function validZipCode() {

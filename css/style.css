@@ -72,7 +72,7 @@ legend {
 
 label {
 	color: #000;
-	display: block;
+	display: inline-block;
 	margin-bottom: .5em;
 }
 
@@ -181,12 +181,20 @@ button:hover {
 }
 
 /* Error Message */
+
+.error {
+	font-size: 1em;
+	margin-bottom: .5em;
+	display: inline-block;
+	color: #DC143C;
+}
+
 .activities .error {
 	margin-top: -10px;
 	display: block;
 	margin-bottom: 16px;
 }
 
-.error {
-	font-family: 'Roboto', sans-serif;
+#credit-card .error ~ label {
+	display: none;
 }

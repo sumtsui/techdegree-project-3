@@ -12,10 +12,10 @@ const activityLabels = activityField.querySelectorAll('label');
 const payment = document.querySelector('#payment');
 const paymentOptions = payment.querySelectorAll('option');
 const paymentDetails = document.querySelectorAll('#payment ~ div');
-const errorColor = '#DC143C'; // error message color
 const ccNum = document.querySelector('#cc-num');
 const zipCode = document.querySelector('#zip');
 const cvv = document.querySelector('#cvv');
+const errorColor = '#DC143C'; // error message color
 let cost = 0;	// total activity cost
 
 // when page load:
@@ -121,9 +121,7 @@ cvv.addEventListener('blur', () => handleInputError(validCVV(), cvv));
 activityField.addEventListener('change', () => handleActivityError());
 
 // check error when form submit
-form.addEventListener('submit', (event) => {
-	if (!validateForm()) event.preventDefault();
-});
+form.addEventListener('submit', (event) => { if (!validateForm()) event.preventDefault(); });
 
 // call all the errorhandlers
 // return true (no error), false (has error)
@@ -134,7 +132,7 @@ function validateForm(event) {
 	if (handleInputError(validMail(), mail, 'Please provide a valid email address')) 
 		valid = false;
 	if (paymentOptions[1].selected) {
-		if (handleInputError(validCCNum(), ccNum)) valid = false;
+		if (handleInputError(validCCNum()[0], ccNum, validCCNum()[1])) valid = false;
 		if (handleInputError(validZipCode(), zipCode)) valid = false;
 		if (handleInputError(validCVV(), cvv)) valid = false;
 	}
@@ -175,29 +173,28 @@ function validName() { return (name.value === '') ? false : true; }
 // 4. email domin allow only 0-9, a-z, '.'
 function validMail() {
 	let string = mail.value.toLowerCase();
-	let result = false;
 	if (string.indexOf('@') <= 0 || string.lastIndexOf('@') === string.length - 1)
-		return result; 
+		return false; 
 	if (string.indexOf('.') <= 0 || string.lastIndexOf('.') === string.length - 1) 
-		return result;
+		return false;
 	// check the part after the first "@" 
 	let substring = string.substr(string.indexOf('@') + 1);
 	console.log('after the @', substring);
 	for (let i = 0; i < substring.length; i++) {
 		console.log(substring[i], substring[i].charCodeAt());
-		if (substring[i].charCodeAt() > 122) return result;
-		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57) return result;
-		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46) return result;
-		else if (!substring.includes('.')) return result;
+		if (substring[i].charCodeAt() > 122) return false;
+		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57) return false;
+		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46) return false;
+		else if (!substring.includes('.')) return false;
 	}
 	// validate the part before the first "@"
 	substring = string.substr(0, string.indexOf('@'));
 	console.log('before the @', substring);
 	for (let i = 0; i < substring.length; i++) {
 		console.log(substring[i], substring[i].charCodeAt());
-		if (substring[i].charCodeAt() > 122) return result;
-		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57 && substring[i].charCodeAt() !== 95) return result;
-		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46 && substring[i].charCodeAt() !== 45) return result;
+		if (substring[i].charCodeAt() > 122) return false;
+		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57 && substring[i].charCodeAt() !== 95) return false;
+		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46 && substring[i].charCodeAt() !== 45) return false;
 	}
 	return true;
 }

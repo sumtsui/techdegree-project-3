@@ -37,7 +37,9 @@ window.addEventListener('load', () => {
 	hide(colorSelect);
 });
 
-// ============== Interaction =================
+// ============================== 
+// Interaction 
+// ==============================
 
 // show "Other Job Role" if "Other" is selected
 title.addEventListener('change', () => {
@@ -73,15 +75,15 @@ activityField.addEventListener('change', (event) => {
 		cost += getCost(text);	// add cost
 		activityLabels.forEach(label => {
 			if (isConflict(label.innerText, text)) {
-				label.firstChild.disabled = true;
-				label.style.color = 'gray';
+				label.firstChild.disabled = true;	// disable the checkbox
+				label.style.color = 'gray';	
 			}
 		});
 	} else if (event.target.checked === false) {
 			cost -= getCost(text);	// deduct cost
 			activityLabels.forEach(label => {
 			if (isConflict(label.innerText, text)) {
-				label.firstChild.disabled = false;
+				label.firstChild.disabled = false; // re-enable the checkbox
 				label.style.color = '#000';
 			}
 		});
@@ -109,7 +111,9 @@ function getCost(string) {
 	return parseInt(string.substr(string.indexOf('$') + 1));
 }
 
-// ================== Validation =====================
+// ==============================
+// Validation
+// ==============================
 
 // check error when input field is blur.
 name.addEventListener('blur', () => handleInputError(validName(), name, 'Please provide your name'));
@@ -123,7 +127,7 @@ activityField.addEventListener('change', () => handleActivityError());
 // check error when form submit
 form.addEventListener('submit', (event) => { if (!validateForm()) event.preventDefault(); });
 
-// call all the errorhandlers
+// call all the errorHandlers
 // return true (no error), false (has error)
 function validateForm(event) {
 	let valid = true;
@@ -167,36 +171,9 @@ function handleInputError(condition, node, message = null) {
 function validName() { return (name.value === '') ? false : true; }
 
 // validate email string, return true (valid) or false (invalid)
-// 1. allow only one '@', can't be the first or last character. 
-// 2. must have one '.', can't be the first or last character. 
-// 3. email name allow only 0-9, a-z, '-', '_', '.'
-// 4. email domin allow only 0-9, a-z, '.'
 function validMail() {
-	let string = mail.value.toLowerCase();
-	if (string.indexOf('@') <= 0 || string.lastIndexOf('@') === string.length - 1)
-		return false; 
-	if (string.indexOf('.') <= 0 || string.lastIndexOf('.') === string.length - 1) 
-		return false;
-	// check the part after the first "@" 
-	let substring = string.substr(string.indexOf('@') + 1);
-	console.log('after the @', substring);
-	for (let i = 0; i < substring.length; i++) {
-		console.log(substring[i], substring[i].charCodeAt());
-		if (substring[i].charCodeAt() > 122) return false;
-		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57) return false;
-		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46) return false;
-		else if (!substring.includes('.')) return false;
-	}
-	// validate the part before the first "@"
-	substring = string.substr(0, string.indexOf('@'));
-	console.log('before the @', substring);
-	for (let i = 0; i < substring.length; i++) {
-		console.log(substring[i], substring[i].charCodeAt());
-		if (substring[i].charCodeAt() > 122) return false;
-		else if (substring[i].charCodeAt() < 97 && substring[i].charCodeAt() > 57 && substring[i].charCodeAt() !== 95) return false;
-		else if (substring[i].charCodeAt() < 48 && substring[i].charCodeAt() !== 46 && substring[i].charCodeAt() !== 45) return false;
-	}
-	return true;
+	let regex = /^(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+	return regex.test(mail.value);
 }
 
 // check and handle Activity error, return true (has error) or false (no error)
@@ -216,7 +193,7 @@ function handleActivityError() {
 	}
 }
 
-// check if at least one activity is selected. 
+// check if at least one activity is selected, return true (yes) or false (no)
 function itemSelected() {
 	let result = false;
 	let activityOptions = document.querySelectorAll('input');
@@ -273,10 +250,5 @@ function validCVV() {
 	return result;
 }
 
-function show(node) {
-	node.style.display = 'block';
-}
-
-function hide(node) {
-	node.style.display = 'none';
-}
+function show(node) { node.style.display = 'block'; }
+function hide(node) { node.style.display = 'none'; }

@@ -129,7 +129,7 @@ form.addEventListener('submit', (event) => { if (!validateForm()) event.preventD
 
 // call all the errorHandlers
 // return true (no error), false (has error)
-function validateForm(event) {
+function validateForm() {
 	let valid = true;
 	if (handleInputError(validName(), name, 'Please provide your name')) 
 		valid = false;
@@ -207,7 +207,6 @@ function itemSelected() {
 // return true (vaild) or false (invalid)
 // return error message 
 function validCCNum() {
-	let result = [];
 	let valid = true;
 	let errorMessage;
 	let num = ccNum.value;
